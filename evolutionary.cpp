@@ -510,27 +510,27 @@ struct Solution
 // printing functions for debugging only purpose
 inline void print(Edge& e)
 {
-    printf("(%d, %d, %.2f, %d)\n", e.u, e.v, e.len, e.id);
+    //printf("(%d, %d, %.2f, %d)\n", e.u, e.v, e.len, e.id);
 }
 void print(vector<Edge>& edges)
 {
     int cnt = 0;
     for(Edge& e: edges)
     {
-        printf("%d: ", cnt++);
+        //printf("%d: ", cnt++);
         print(e);
     }
     putchar('\n');
 }
 void print(Solution& s)
 {
-    printf("Edges used:\n");
+    //printf("Edges used:\n");
     for(auto it = s.usedEdges.begin(); it != s.usedEdges.end(); ++it)
     {
         print(edges[*it]);
     }
     putchar('\n');
-    printf("Objective value = %.2f\n", s.objective);
+    //printf("Objective value = %.2f\n", s.objective);
     putchar('\n');
 }
 
@@ -1019,7 +1019,7 @@ struct Evolutionary
             {
                 return best;
             }
-            printf("Generation = %d\n", gen);
+            //printf("Generation = %d\n", gen);
             minObj = DBL_MAX;
             maxObj = 0;
             // find best solution
@@ -1132,7 +1132,7 @@ struct Evolutionary
                 notImproving++;
             }
             gen++;
-            printf("Best so far = %.10f\n", best.objective);
+            //printf("Best so far = %.10f\n", best.objective);
         }
         return best;
     }
@@ -1247,7 +1247,7 @@ struct Evolutionary
 	   and inserting the edges like Kruskal Algorithm */
     void genRandomPop()
     {
-        printf("RandomPop\n");
+        //printf("RandomPop\n");
         vector<Edge> cpy = edges;
         int numForests;
         for(int i = 0; i < popSize; ++i)
@@ -1281,7 +1281,7 @@ struct Evolutionary
        random vertices using Dijkstra */
     void genMinPathPop()
     {
-        printf("MinPathPop\n");
+        //printf("MinPathPop\n");
         // generate adjacency list to perform Dijkstra
         vector<AdjInfo> adj[n];
         for(Edge& e : edges)
@@ -1430,7 +1430,7 @@ struct Evolutionary
        of chosing the lowest cost edges (MST-like) */
     void genGreedyProbPop()
     {
-        printf("MST-like pop\n");
+        //printf("MST-like pop\n");
 
         for(int i = 0; i < popSize; ++i)
         {
@@ -1498,7 +1498,7 @@ struct Evolutionary
 
     void genPTASPop()
     {
-        printf("PTAS pop\n");
+        //printf("PTAS pop\n");
 
         adjList.assign(n, vector<AdjInfo>());
         for(Edge& e : edges)
@@ -1741,7 +1741,7 @@ int main(int argc, char* argv[])
 {
     if(argc != 13)
     {
-        printf("usage: ./evolutionary aPop bPop aGen bGen aCross bCross aMut bMut fitBase capBase seed mode < inputFile\n");
+        //printf("usage: ./evolutionary aPop bPop aGen bGen aCross bCross aMut bMut fitBase capBase seed mode < inputFile\n");
         return -1;
     }
     cin >> n >> m;
@@ -1753,8 +1753,8 @@ int main(int argc, char* argv[])
     capabilityBase = atof(argv[10]);
     seedBase = atol(argv[11]);
     mode = atoi(argv[12]);
-    cout << n << endl;
-    printf("%i, %i, %i, %i\n",popSize,numGen,numCross,numMut);
+    //cout << n << endl;
+    //printf("%i, %i, %i, %i\n",popSize,numGen,numCross,numMut);
     edges.resize(m);
     for(int i = 0; i < m; ++i)
     {
@@ -1776,22 +1776,22 @@ int main(int argc, char* argv[])
     log << fixed << setprecision(10);
         if(mode == 0)
         {
-            printf("Random Mode Selected\n");
+            //printf("Random Mode Selected\n");
             log << "RANDOM\n";
         }
         else if(mode == 1)
         {
-            printf("MST Mode Selected\n");
+            //printf("MST Mode Selected\n");
             log << "MST\n";
         }
         else if(mode == 2)
         {
-            printf("Minimum Path Mode Selected\n");
+            //printf("Minimum Path Mode Selected\n");
             log << "Minimum Path\n";
         }
         else
         {
-            printf("PTAS Mode Selected\n");
+            ////printf("PTAS Mode Selected\n");
             log << "PTAS\n";
             for(int k = 3; k <= 5; k++)
             {
@@ -1801,10 +1801,11 @@ int main(int argc, char* argv[])
                 prufferCodes[k] = lst;
             }
         }
+        Solution best;
         for(int seedinc = 0; seedinc < 1; ++seedinc)
         {
             seed = seedBase+seedinc;
-            printf("seed = %u\n", seed);
+            //printf("seed = %u\n", seed);
             //Initialize seeds
             srand(seed);
             rng.seed(seed);
@@ -1812,12 +1813,13 @@ int main(int argc, char* argv[])
             Evolutionary ev(popSize, numGen, numCross, numMut);
             chrono::steady_clock::time_point begin, end;
             begin = chrono::steady_clock::now();
-            Solution best = ev.run();
-            printf("Best Value Found = %.10f\n", best.objective);
+            best = ev.run();
+            //printf("Best Value Found = %.10f\n", best.objective);
             end = chrono::steady_clock::now();
-            cout << "Time elapsed = " << std::chrono::duration_cast<std::chrono::seconds>(end - begin).count() << endl;
+            //cout << "Time elapsed = " << std::chrono::duration_cast<std::chrono::seconds>(end - begin).count() << endl;
             log << best.objective << "," <<  std::chrono::duration_cast<std::chrono::seconds>(end - begin).count() << endl;
         }
     log.close();
+    cout << best.objective << endl;
     return 0;
 }
