@@ -7,6 +7,8 @@ using namespace std;
 #define vi vector<int>
 #define ii pair<int, int>
 #define EPS 1e-4
+#define TIMEOUT 600
+#define MAX_NOT_IMPROVING 25
 
 int mode;
 
@@ -68,9 +70,9 @@ vector<vector<double>> req; // requirement values
 vector<vector<AdjInfo>> adjList; // used for PTAS crossover
 
 // seed used to generate random numbers
+unsigned seedBase = 0xc0ffee;
 unsigned seed;
-// seeds used for testing
-unsigned seedVector[] = {280192806, 871237442, 2540188929, 107472404, 3957311442, 316851227, 619606212, 1078082709, 916212990, 698598169};
+double fitnessBase, capabilityBase;
 //Mersenne Twister: Good quality random number generator
 std::mt19937 rng;
 map<ii, Edge*> edgeMap;
@@ -618,9 +620,9 @@ void buildProbGreedySolution(vector<Edge>& edge, vb& fixedEdge, Solution& sol)
         if(eq(minVal, maxVal))
             fitness[i] = 1.0;
         else
-            fitness[i] = 1.0 - ((edge[idx[i]].len - minVal)/(maxVal - minVal)) + 0.4;
+            fitness[i] = capabilityBase - ((edge[idx[i]].len - minVal)/(maxVal - minVal));
         fitSum += fitness[i];
-        assert(leq(fitness[i], 1.4));
+        assert(leq(fitness[i], capabilityBase));
     }
     int chosen;
     Edge e;
@@ -981,6 +983,9 @@ struct Evolutionary
 
     Solution run()
     {
+        chrono::steady_clock::time_point start, current;
+        int ellapsed=0;
+        start = chrono::steady_clock::now();
         if(mode == 0)
             genRandomPop();
         else if(mode == 1)
@@ -1006,8 +1011,14 @@ struct Evolutionary
         int notImproving = 0;
         double curBestVal = DBL_MAX;
         Solution* tmpBest;
-        while(gen <= numGen && notImproving < 25)
+        while(gen <= numGen && notImproving < MAX_NOT_IMPROVING)
         {
+            current = chrono::steady_clock::now();
+            ellapsed = std::chrono::duration_cast<std::chrono::seconds>(current - start).count();
+            if(ellapsed >= TIMEOUT)
+            {
+                return best;
+            }
             printf("Generation = %d\n", gen);
             minObj = DBL_MAX;
             maxObj = 0;
@@ -1030,11 +1041,17 @@ struct Evolutionary
                 if(abs(minObj - maxObj) < EPS)
                     fitness[i] = 1.0;
                 else
-                    fitness[i] = 1.0 - (solutions[i].objective - minObj)/(maxObj - minObj) + 0.2;
+                    fitness[i] = fitnessBase - (solutions[i].objective - minObj)/(maxObj - minObj);
                 fitSum += fitness[i];
-                assert(leq(fitness[i], 1.2));
+                assert(leq(fitness[i], fitnessBase));
             }
             std::uniform_real_distribution<double> distrib(0.0, fitSum);
+            current = chrono::steady_clock::now();
+            ellapsed = std::chrono::duration_cast<std::chrono::seconds>(current - start).count();
+            if(ellapsed >= TIMEOUT)
+            {
+                return best;
+            }
             // Crossover between parents
             int id1, id2;
             for(int i = 0; i < numCrossover; ++i)
@@ -1089,6 +1106,12 @@ struct Evolutionary
                 }
             }
             best = *tmpBest;
+            current = chrono::steady_clock::now();
+            ellapsed = std::chrono::duration_cast<std::chrono::seconds>(current - start).count();
+            if(ellapsed >= TIMEOUT)
+            {
+                return best;
+            }
             for(int i = 0; i < offspringSize; ++i)
             {
                 wins[i] = mp(0, i);
@@ -1709,14 +1732,29 @@ struct Evolutionary
 
 };
 
+int getParamValue(float a, float b)
+{
+    return max((int) (a*n + b), 5);
+}
+
 int main(int argc, char* argv[])
 {
-    if(argc != 5)
+    if(argc != 13)
     {
-        printf("usage: ./evolutionary popSize numGen numCrossovers numMutations < inputFile\n");
+        printf("usage: ./evolutionary aPop bPop aGen bGen aCross bCross aMut bMut fitBase capBase seed mode < inputFile\n");
         return -1;
     }
     cin >> n >> m;
+    int popSize = getParamValue(atof(argv[1]), atof(argv[2]));
+    int numGen = getParamValue(atof(argv[3]), atof(argv[4]));
+    int numCross = getParamValue(atof(argv[5]), atof(argv[6]));
+    int numMut = getParamValue(atof(argv[7]), atof(argv[8]));
+    fitnessBase = atof(argv[9]);
+    capabilityBase = atof(argv[10]);
+    seedBase = atol(argv[11]);
+    mode = atoi(argv[12]);
+    cout << n << endl;
+    printf("%i, %i, %i, %i\n",popSize,numGen,numCross,numMut);
     edges.resize(m);
     for(int i = 0; i < m; ++i)
     {
@@ -1736,8 +1774,6 @@ int main(int argc, char* argv[])
     }
     ofstream log("log.txt", ios::app);
     log << fixed << setprecision(10);
-    for(mode = 3; mode >= 0; mode--)
-    {
         if(mode == 0)
         {
             printf("Random Mode Selected\n");
@@ -1765,14 +1801,15 @@ int main(int argc, char* argv[])
                 prufferCodes[k] = lst;
             }
         }
-        for(int seedid = 0; seedid < 10; ++seedid)
+        for(int seedinc = 0; seedinc < 1; ++seedinc)
         {
-            seed = seedVector[seedid];
+            seed = seedBase+seedinc;
             printf("seed = %u\n", seed);
             //Initialize seeds
             srand(seed);
             rng.seed(seed);
-            Evolutionary ev(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), atoi(argv[4]));
+            // PopSize, numGen, numCross, numMut
+            Evolutionary ev(popSize, numGen, numCross, numMut);
             chrono::steady_clock::time_point begin, end;
             begin = chrono::steady_clock::now();
             Solution best = ev.run();
@@ -1781,7 +1818,6 @@ int main(int argc, char* argv[])
             cout << "Time elapsed = " << std::chrono::duration_cast<std::chrono::seconds>(end - begin).count() << endl;
             log << best.objective << "," <<  std::chrono::duration_cast<std::chrono::seconds>(end - begin).count() << endl;
         }
-    }
     log.close();
     return 0;
 }
