@@ -1202,7 +1202,7 @@ struct Evolutionary
     {
         int i, rdInt;
         int best;
-        int K = 2 + rand()%(popSize/10);;
+        int K = 2 + rand()% max(1,popSize/10);
         double p, curP, rdDbl;
         p = 0.9;
         vector<int> reservoir(K);
@@ -1754,7 +1754,7 @@ int main(int argc, char* argv[])
     seedBase = atol(argv[11]);
     mode = atoi(argv[12]);
     //cout << n << endl;
-    //printf("%i, %i, %i, %i\n",popSize,numGen,numCross,numMut);
+    printf("%i, %i, %i, %i\n",popSize,numGen,numCross,numMut);
     edges.resize(m);
     for(int i = 0; i < m; ++i)
     {
