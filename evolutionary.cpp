@@ -1754,7 +1754,7 @@ int main(int argc, char* argv[])
     seedBase = atol(argv[11]);
     mode = atoi(argv[12]);
     //cout << n << endl;
-    printf("%i, %i, %i, %i\n",popSize,numGen,numCross,numMut);
+    // printf("%i, %i, %i, %i\n",popSize,numGen,numCross,numMut);
     edges.resize(m);
     for(int i = 0; i < m; ++i)
     {
