@@ -67,9 +67,8 @@ vector<vector<double>> req; // requirement values
 vector<vector<AdjInfo>> adjList;
 
 // seed used to generate random numbers
+unsigned seedBase = 0xc0ffee;
 unsigned seed;
-// seeds used for testing
-unsigned seedVector[] = {280192806, 871237442, 2540188929, 107472404, 3957311442, 316851227, 619606212, 1078082709, 916212990, 698598169};
 
 //Mersenne Twister: Good quality random number generator
 std::mt19937 rng;
@@ -472,8 +471,13 @@ Solution GLS()
 }
 
 
-int main()
+int main(int argc, char* argv[])
 {
+    if (argc != 2)
+    {
+        printf("usage: ./gls outputFile < inputFile\n");
+        return -1;
+    }
     cin >> n >> m;
     edges.resize(m);
     for(int i = 0; i < m; ++i)
@@ -493,11 +497,11 @@ int main()
             req[j][i] = req[i][j];
         }
     }
-    ofstream log("log.txt", ios::app);
+    ofstream log(argv[1], ios::app);
     log << fixed << setprecision(10);
-    for(int seedid = 0; seedid < 10; ++seedid)
+    for(int inc = 0; inc < 30; ++inc)
     {
-        seed = seedVector[seedid];
+        seed = seedVector[inc];
         printf("seed = %u\n", seed);
         //Initialize seeds
         srand(seed);
