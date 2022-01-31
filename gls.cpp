@@ -501,7 +501,7 @@ int main(int argc, char* argv[])
     log << fixed << setprecision(10);
     for(int inc = 0; inc < 30; ++inc)
     {
-        seed = seedVector[inc];
+        seed = seedBase+inc;
         printf("seed = %u\n", seed);
         //Initialize seeds
         srand(seed);
