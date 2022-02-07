@@ -1734,7 +1734,7 @@ struct Evolutionary
 
 int getParamValue(float a, float b)
 {
-    return max((int) (a*n + b), 5);
+    return (int) (a*n + b);
 }
 
 int main(int argc, char* argv[])
@@ -1745,10 +1745,10 @@ int main(int argc, char* argv[])
         return -1;
     }
     cin >> n >> m;
-    int popSize = getParamValue(atof(argv[1]), atof(argv[2]));
-    int numGen = getParamValue(atof(argv[3]), atof(argv[4]));
-    int numCross = getParamValue(atof(argv[5]), atof(argv[6]));
-    int numMut = getParamValue(atof(argv[7]), atof(argv[8]));
+    int popSize = max(getParamValue(atof(argv[1]), atof(argv[2])), 25);
+    int numGen = max(getParamValue(atof(argv[3]), atof(argv[4])), 100);
+    int numCross = max(getParamValue(atof(argv[5]), atof(argv[6])), 25);
+    int numMut = max(getParamValue(atof(argv[7]), atof(argv[8])),5);
     fitnessBase = atof(argv[9]);
     capabilityBase = atof(argv[10]);
     mode = atoi(argv[11]);
@@ -1774,22 +1774,18 @@ int main(int argc, char* argv[])
     if(mode == 0)
     {
         printf("Random Mode Selected\n");
-        log << "RANDOM\n";
     }
     else if(mode == 1)
     {
         printf("MST Mode Selected\n");
-        log << "MST\n";
     }
     else if(mode == 2)
     {
         printf("Minimum Path Mode Selected\n");
-        log << "Minimum Path\n";
     }
     else
     {
         printf("PTAS Mode Selected\n");
-        log << "PTAS\n";
         for(int k = 3; k <= 5; k++)
         {
             list<vector<int>> lst;
